@@ -1,0 +1,34 @@
+# ==============================================================================
+# LiteLLM Proxy Configuration with Custom Model Armor Pre/Post Call Hook
+# ==============================================================================
+
+model_list:
+  - model_name: gemini-2.5-flash
+    litellm_params:
+      model: vertex_ai/gemini-2.5-flash
+      vertex_project: os.environ/GCP_PROJECT_ID
+      vertex_location: os.environ/GCP_PROJECT_LOCATION
+
+  - model_name: gpt-4o-mini
+    litellm_params:
+      model: openai/gpt-4o-mini
+      api_base: https://api.openai.com/v1/
+      api_key: os.environ/OPENAI_API_KEY
+
+router_settings:
+  model_group_alias:
+    "vertex_ai/gemini-2.5-flash": "gemini-2.5-flash"
+
+general_settings:
+  store_model_in_db: true
+  store_prompts_in_spend_logs: true
+  allow_requests_on_db_unavailable: true
+
+litellm_settings:
+  drop_params: true
+  request_timeout: 600
+  success_callback: ["langfuse"]
+  failure_callback: ["langfuse"]
+  
+  # Register the Model Armor custom hook
+  callbacks: ["model_armor.litellm.hooks.model_armor_hook.model_armor_hook_instance"]

@@ -1,0 +1,14 @@
+{
+  "name": "model-armor-promptfoo-tests",
+  "version": "1.0.0",
+  "description": "Promptfoo Guardrail and Red-Teaming Tests for LiteLLM & Google Cloud Model Armor",
+  "scripts": {
+    "test": "promptfoo eval",
+    "test:view": "promptfoo view",
+    "redteam": "promptfoo redteam run",
+    "redteam:report": "promptfoo redteam report"
+  },
+  "devDependencies": {
+    "promptfoo": "^0.100.0"
+  }
+}

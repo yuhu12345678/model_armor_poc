@@ -1,0 +1,39 @@
+# ==============================================================================
+# Promptfoo Automated Red-Teaming Configuration for LiteLLM & Model Armor
+# ==============================================================================
+
+description: "LiteLLM Model Armor Automated Red-Team Audit"
+
+target:
+  id: openai:chat:gemini-2.5-flash
+  config:
+    apiBaseUrl: http://localhost:4000/v1
+    apiKey: sk-3456
+    extraBody:
+      guardrails:
+        - "model-armor-guardrail"
+
+redteam:
+  purpose: "Enterprise LLM customer platform protected by Google Cloud Model Armor guardrails."
+  numTests: 5
+  plugins:
+    # Prompt injection & jailbreaks
+    - prompt-injection
+    - jailbreak
+    # Sensitive data & PII
+    - pii
+    - pii:direct
+    - pii:social-security-number
+    # Harmful & Responsible AI content
+    - harmful:hate
+    - harmful:harassment
+    - harmful:dangerous-content
+    - harmful:malicious-urls
+    # System safety
+    - contracts
+    - excessive-agency
+
+  strategies:
+    - basic
+    - jailbreak
+    - prompt-injection

@@ -1,0 +1,8 @@
+# Google Cloud Model Armor & LiteLLM Dependencies
+google-cloud-modelarmor>=0.1.0; python_version>='3.10'
+google-auth>=2.29.0
+requests>=2.31.0
+litellm>=1.40.0
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
+python-dotenv>=1.0.0

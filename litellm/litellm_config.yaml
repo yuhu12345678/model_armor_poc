@@ -1,0 +1,67 @@
+# ==============================================================================
+# LiteLLM Proxy Configuration with Google Cloud Model Armor Guardrail
+# ==============================================================================
+
+model_list:
+  # Gemini Flash on Vertex AI protected with Model Armor
+  - model_name: gemini-2.5-flash
+    litellm_params:
+      model: vertex_ai/gemini-2.5-flash
+      vertex_project: os.environ/GCP_PROJECT_ID
+      vertex_location: os.environ/GCP_PROJECT_LOCATION
+      guardrails:
+        - guardrail_name: "model-armor-guardrail"
+
+  # Gemini 3 Flash protected with Model Armor
+  - model_name: gemini-3-flash
+    litellm_params:
+      model: vertex_ai/gemini-3-flash
+      vertex_project: os.environ/GCP_PROJECT_ID
+      vertex_location: os.environ/GCP_PROJECT_LOCATION
+      guardrails:
+        - guardrail_name: "model-armor-guardrail"
+
+  # OpenAI GPT-4o-mini protected with Model Armor
+  - model_name: gpt-4o-mini
+    litellm_params:
+      model: openai/gpt-4o-mini
+      api_base: https://api.openai.com/v1/
+      api_key: os.environ/OPENAI_API_KEY
+      guardrails:
+        - guardrail_name: "model-armor-guardrail"
+
+router_settings:
+  model_group_alias:
+    "vertex_ai/gemini-2.5-flash": "gemini-2.5-flash"
+
+general_settings:
+  store_model_in_db: true
+  store_prompts_in_spend_logs: true
+  allow_requests_on_db_unavailable: true
+  database_connection_pool_limit: 20
+
+litellm_settings:
+  drop_params: true
+  request_timeout: 600
+  success_callback: ["langfuse"]
+  failure_callback: ["langfuse"]
+  langfuse_default_tags:
+    - "model_armor_guardrail"
+    - "vertex_ai"
+
+  # --------------------------------------------------------------------------
+  # Google Cloud Model Armor Guardrail Settings
+  # --------------------------------------------------------------------------
+  guardrails:
+    - guardrail_name: "model-armor-guardrail"
+      litellm_params:
+        guardrail: "google_model_armor"
+        mode: ["pre_call", "post_call"]
+        template_id: "projects/rep-ds-sandbox/locations/us-central1/templates/llm-guardrails-template"
+        project_id: "rep-ds-sandbox"
+        location: "us-central1"
+        mask_request_content: true
+        mask_response_content: true
+        fail_on_error: true
+        sanitize_error_detail: true
+        default_on: true
