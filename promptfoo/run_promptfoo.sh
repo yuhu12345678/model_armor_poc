@@ -8,15 +8,23 @@ echo "========================================================"
 echo " Running Promptfoo Evaluation on LiteLLM + Model Armor"
 echo "========================================================"
 
-if ! command -v promptfoo &> /dev/null; then
-    echo "promptfoo command not found. Installing via npm..."
-    npm install
+# Load .env from parent if present
+if [ -f ../.env ]; then
+    export $(grep -v '^#' ../.env | xargs)
 fi
 
-echo "[*] Executing guardrail test suite..."
-npx promptfoo eval -c promptfooconfig.yaml
+echo "[*] Target Proxy: ${LITELLM_PROXY_URL:-https://llm.ds-sandbox.reputation.com}"
+echo "[*] Target Model: ${LITELLM_MODEL:-gemini-2.5-flash}"
+
+if [[ "$1" == "--redteam" || "$1" == "-r" ]]; then
+    echo "[*] Running Automated Red-Team Audit with redteam_config.yaml..."
+    npx promptfoo redteam run -c redteam_config.yaml
+else
+    echo "[*] Running Guardrail Evaluation Suite with promptfooconfig.yaml..."
+    npx promptfoo eval -c promptfooconfig.yaml
+fi
 
 echo ""
-echo "[*] Evaluation completed successfully."
+echo "[*] Run completed."
 echo "To view full visual evaluation report in browser, run:"
 echo "  cd model_armor/promptfoo && npx promptfoo view"

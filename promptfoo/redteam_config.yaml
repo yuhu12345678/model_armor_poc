@@ -4,36 +4,36 @@
 
 description: "LiteLLM Model Armor Automated Red-Team Audit"
 
-target:
-  id: openai:chat:gemini-2.5-flash
-  config:
-    apiBaseUrl: http://localhost:4000/v1
-    apiKey: sk-3456
-    extraBody:
-      guardrails:
-        - "model-armor-guardrail"
+targets:
+  - id: file://litellm_provider.js
+    label: "LiteLLM (Gemini 2.5 Flash + Model Armor Guardrails)"
 
 redteam:
-  purpose: "Enterprise LLM customer platform protected by Google Cloud Model Armor guardrails."
-  numTests: 5
+  purpose: "Enterprise customer-facing LLM application protected by Google Cloud Model Armor security guardrails (prompt injection, jailbreak, sensitive data protection, and harmful content filtering)."
+  numTests: 3
   plugins:
     # Prompt injection & jailbreaks
-    - prompt-injection
-    - jailbreak
+    - system-prompt-override
+    - prompt-extraction
+    - hijacking
     # Sensitive data & PII
-    - pii
     - pii:direct
-    - pii:social-security-number
+    - pii:social
+    - pii:session
+    - pii:api-db
     # Harmful & Responsible AI content
     - harmful:hate
-    - harmful:harassment
-    - harmful:dangerous-content
-    - harmful:malicious-urls
-    # System safety
+    - harmful:harassment-bullying
+    - harmful:unsafe-practices
+    - harmful:weapons:ied
+    - harmful:cybercrime:malicious-code
+    # System safety & compliance
     - contracts
     - excessive-agency
 
   strategies:
     - basic
     - jailbreak
-    - prompt-injection
+    - jailbreak-templates
+    - base64
+    - leetspeak
