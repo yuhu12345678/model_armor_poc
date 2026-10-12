@@ -8,3 +8,4 @@ Technical:
 * Generate sample config.yaml for litellm integration
 * Write python scripts for testing integration
 * Use promptfoo for more testing
+* Create another set of tests in deepeval for evaluating the prompts we created with promptfoo. I would like to use both deepeval and promptfoo to setup framework to build and evaluate gold dataset currently in BQ (dumped from Langfuse).

@@ -1,3 +1,6 @@
 __pycache__
 .env
+.idea
 
+.terraform
+terraform.tfstate.d

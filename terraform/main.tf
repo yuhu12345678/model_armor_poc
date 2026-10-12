@@ -50,10 +50,23 @@ resource "google_model_armor_template" "guardrails_template" {
       }
     }
 
-    # Sensitive Data Protection (SDP / DLP) Settings
+    # Sensitive Data Protection (SDP / DLP) Settings.
+    # basic_config and advanced_config are mutually exclusive: basic_config
+    # covers a fixed infoType set (no SSN), advanced_config delegates to the
+    # DLP inspect template in sdp.tf. See var.enable_sdp_advanced_filter.
     sdp_settings {
-      basic_config {
-        filter_enforcement = var.enable_sdp_basic_filter ? "ENABLED" : "DISABLED"
+      dynamic "basic_config" {
+        for_each = var.enable_sdp_advanced_filter ? [] : [1]
+        content {
+          filter_enforcement = var.enable_sdp_basic_filter ? "ENABLED" : "DISABLED"
+        }
+      }
+
+      dynamic "advanced_config" {
+        for_each = var.enable_sdp_advanced_filter ? [1] : []
+        content {
+          inspect_template = google_data_loss_prevention_inspect_template.model_armor_sdp[0].id
+        }
       }
     }
 
