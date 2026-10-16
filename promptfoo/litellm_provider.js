@@ -1,6 +1,24 @@
 /**
  * Custom LiteLLM Provider Class for Promptfoo with Model Armor Guardrails Support.
+ *
+ * A non-2xx response means one of two very different things, and they must not
+ * be conflated:
+ *
+ *   1. A guardrail rejection -- Model Armor blocked the prompt or the response.
+ *      That is a successful test outcome for the block-expected cases, so it is
+ *      returned as `output` with a "[BLOCKED ...]" prefix for assertions to match.
+ *
+ *   2. Anything else -- bad credentials, unknown model, proxy timeout, 5xx.
+ *      That is an infrastructure failure, not a guardrail decision. It is
+ *      returned as `error` so promptfoo reports it as an errored test rather
+ *      than scoring it as a successful block.
+ *
+ * Reporting both as "[BLOCKED ...]: Model Armor" lets a dead proxy or an expired
+ * key masquerade as a passing guardrail suite.
  */
+
+// A rejection is only attributable to the guardrail if the proxy says so.
+const GUARDRAIL_MARKERS = [/model\s*armor/i, /guardrail/i, /blocked by/i];
 
 class LiteLLMModelArmorProvider {
   constructor(options = {}) {
@@ -41,21 +59,32 @@ class LiteLLMModelArmorProvider {
       try {
         responseJson = JSON.parse(responseText);
       } catch (e) {
-        // Non-JSON response
+        // Non-JSON response -- leave responseJson empty and fall back to text.
       }
 
       if (response.ok) {
-        const content = responseJson.choices?.[0]?.message?.content || responseText;
-        return {
-          output: content,
-        };
-      } else {
-        // Model Armor blocked or error returned
-        const errorMsg = responseJson.error?.message || responseText || `HTTP ${response.status}`;
-        return {
-          output: `[BLOCKED HTTP ${response.status}]: ${errorMsg}`,
-        };
+        const content = responseJson.choices?.[0]?.message?.content;
+        if (content === undefined || content === null) {
+          return {
+            error: `LiteLLM returned ${response.status} with no message content: ${responseText.slice(0, 500)}`,
+          };
+        }
+        return { output: content };
       }
+
+      const errorMsg = responseJson.error?.message || responseText || `HTTP ${response.status}`;
+
+      // 5xx is never a guardrail decision, whatever the body says.
+      const isGuardrailBlock =
+        response.status < 500 && GUARDRAIL_MARKERS.some((re) => re.test(errorMsg));
+
+      if (isGuardrailBlock) {
+        return { output: `[BLOCKED HTTP ${response.status}]: ${errorMsg}` };
+      }
+
+      return {
+        error: `LiteLLM request failed (HTTP ${response.status}), not a guardrail block: ${errorMsg}`,
+      };
     } catch (err) {
       return {
         error: `Network error connecting to LiteLLM: ${err.message}`,

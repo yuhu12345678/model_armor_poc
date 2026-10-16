@@ -75,7 +75,7 @@ variable "enable_sdp_advanced_filter" {
 }
 
 variable "sdp_info_types" {
-  description = "Built-in DLP infoTypes the inspect template screens for. See https://cloud.google.com/dlp/docs/infotypes-reference"
+  description = "Built-in DLP infoTypes the inspect template screens for. See https://cloud.google.com/dlp/docs/infotypes-reference. Do NOT add PERSON_NAME: it matches proper nouns in ordinary prose (place names, honorifics, temple names) and blocks benign answers."
   type        = list(string)
   default = [
     "US_SOCIAL_SECURITY_NUMBER",
@@ -83,7 +83,6 @@ variable "sdp_info_types" {
     "CREDIT_CARD_NUMBER",
     "EMAIL_ADDRESS",
     "PHONE_NUMBER",
-    "PERSON_NAME",
     "US_PASSPORT",
     "IBAN_CODE",
     "GCP_CREDENTIALS",
